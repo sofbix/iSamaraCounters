@@ -216,6 +216,8 @@ extension UpravdomSendDataService {
                                 }
                             return
                         }
+                    } else {
+                        seal.fulfill(data)
                     }
 
                 }
