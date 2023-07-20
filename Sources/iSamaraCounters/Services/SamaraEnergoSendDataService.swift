@@ -43,7 +43,8 @@ public struct SamaraEnergoSendDataService : SendDataService {
         return formatter
     }()
 
-    private let semaphore = DispatchSemaphore(value: 1)
+    private let semaphore = DispatchSemaphore(value: 0)
+    private var isContinue = false
     
     public func addCheckers(for input: SendDataServiceInput){
         let electricAccountNumberChecker = BxInputBlockChecker(row: input.electricAccountNumberRow, subtitle: "Введите непустой номер из чисел", handler: { row in
@@ -200,10 +201,12 @@ public struct SamaraEnergoSendDataService : SendDataService {
             }
 
             let okAction = UIAlertAction(title: "Продолжить", style: .default) { _ in
+                //isContinue = true
                 semaphore.signal()
             }
 
             let cancelAction = UIAlertAction(title: "Отменить", style: .cancel) { _ in
+                //isContinue = false
                 semaphore.signal()
             }
 
@@ -214,7 +217,11 @@ public struct SamaraEnergoSendDataService : SendDataService {
             seal.fulfill(Void())
         }.then(on: DispatchQueue.global(qos: .background)){
             semaphore.wait()
-            return finishSending(input, counterItems: counterItems)
+            if isContinue {
+                return finishSending(input, counterItems: counterItems)
+            } else {
+                return .init(error: NSError(domain: self.title, code: 404, userInfo: [NSLocalizedDescriptionKey: "\(self.title): Отменено пользователем."]))
+            }
         }
     }
     
