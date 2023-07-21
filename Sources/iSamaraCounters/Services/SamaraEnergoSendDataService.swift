@@ -43,8 +43,22 @@ public struct SamaraEnergoSendDataService : SendDataService {
         return formatter
     }()
 
-    private let semaphore = DispatchSemaphore(value: 0)
-    private var isContinue = false
+
+
+    private final class AnswerWaiting {
+        private let semaphore = DispatchSemaphore(value: 0)
+        private var isContinue = false
+
+        func addAnswer(_ isContinue: Bool) {
+            self.isContinue = isContinue
+            semaphore.signal()
+        }
+
+        func isContinueWait() -> Bool {
+            semaphore.wait()
+            return self.isContinue
+        }
+    }
     
     public func addCheckers(for input: SendDataServiceInput){
         let electricAccountNumberChecker = BxInputBlockChecker(row: input.electricAccountNumberRow, subtitle: "Введите непустой номер из чисел", handler: { row in
@@ -117,9 +131,6 @@ public struct SamaraEnergoSendDataService : SendDataService {
         let getRequest = try! URLRequest(url: "https://lk.samaraenergo.ru/sap/opu/odata/SAP/ZERP_UTILITIES_UMC_PUBLIC_SRV_SRV/GetRegistersToRead?ContractAccountID='\(account)'&SerialNumber=''", method: .get, headers: commonHeaders)
         
         return service(getRequest, isNeedCheckOutput: false).then{ getData -> Promise<Data> in
-
-            let email = input.emailRow.value ?? ""
-            let date = iso8601.string(from: Date())
 
             var registersData: GetRegistersData?
             do {
@@ -194,30 +205,29 @@ public struct SamaraEnergoSendDataService : SendDataService {
     }
 
     private func tryToAnswerUser(_ input: SendDataServiceInput, counterItems: [GetRegistersData.Item], message: String) -> Promise<Data> {
-        return Promise<Void> { seal in
+        return Promise<AnswerWaiting> { seal in
             guard let controller = input as? UIViewController else {
                 seal.reject(NSError(domain: self.title, code: 404, userInfo: [NSLocalizedDescriptionKey: "\(self.title): Что то пошло не так с интерфейсом"]))
                 return
             }
 
+            var answerWaiting = AnswerWaiting()
+
             let okAction = UIAlertAction(title: "Продолжить", style: .default) { _ in
-                //isContinue = true
-                semaphore.signal()
+                answerWaiting.addAnswer(true)
             }
 
             let cancelAction = UIAlertAction(title: "Отменить", style: .cancel) { _ in
-                //isContinue = false
-                semaphore.signal()
+                answerWaiting.addAnswer(false)
             }
 
             let alertController = UIAlertController(title: "Предупреждение", message: "\(title): \(message)", preferredStyle: .alert)
             alertController.addAction(cancelAction)
             alertController.addAction(okAction)
             controller.present(alertController, animated: true, completion: nil)
-            seal.fulfill(Void())
-        }.then(on: DispatchQueue.global(qos: .background)){
-            semaphore.wait()
-            if isContinue {
+            seal.fulfill(answerWaiting)
+        }.then(on: DispatchQueue.global(qos: .background)){ answerWaiting in
+            if answerWaiting.isContinueWait() {
                 return finishSending(input, counterItems: counterItems)
             } else {
                 return .init(error: NSError(domain: self.title, code: 404, userInfo: [NSLocalizedDescriptionKey: "\(self.title): Отменено пользователем."]))
