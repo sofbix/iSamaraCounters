@@ -85,7 +85,7 @@ extension SamaraEnergoSendDataService {
 
     final class OutputData: Decodable {
         final class Results: Decodable {
-            var result: [OutputDataItem]
+            var results: [OutputDataItem]
         }
         final class D: OutputDataItem {
 
