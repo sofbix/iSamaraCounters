@@ -97,7 +97,7 @@ extension SamaraEnergoSendDataService {
 
             required init(from decoder: Decoder) throws {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
-                DependentMeterReadingResults = try container.decode(Results.self, forKey: .DependentMeterReadingResults)
+                DependentMeterReadingResults = try container.decodeIfPresent(Results.self, forKey: .DependentMeterReadingResults)
                 try super.init(from: decoder)
             }
         }
