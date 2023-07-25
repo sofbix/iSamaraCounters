@@ -33,7 +33,7 @@ extension SamaraEnergoSendDataService {
         }
     }
 
-    class InputMetterReadingData: Codable {
+    class InputMetterReadingData: Encodable {
         var DeviceID: String
         var MeterReadingNoteID: String
         var ReadingResult: String
@@ -62,19 +62,29 @@ extension SamaraEnergoSendDataService {
 
     final class InputData: InputMetterReadingData {
         var DependentMeterReadingResults: [InputMetterReadingData] = []
+
+        private enum CodingKeys: String, CodingKey {
+            case DependentMeterReadingResults
+        }
+
+        override func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try super.encode(to: encoder)
+            try container.encode(DependentMeterReadingResults, forKey: .DependentMeterReadingResults)
+        }
     }
 
-    class OutputMetterReadingData: InputMetterReadingData {
-        var MeterReadingResultID: String = ""
-        var Consumption: String = "1.00000000000000"
-        var MeterReadingReasonID: String = "09"
-        var MeterReadingCategoryID: String = "02"
-        var MeterReadingStatusID: String = ""
-        var MultipleMeterReadingReasonsFlag: Bool = false
+    class OutputMetterReadingData: Decodable {
+        var MeterReadingResultID: String
+        var Consumption: String
+        var MeterReadingReasonID: String
+        var MeterReadingCategoryID: String
+        var MeterReadingStatusID: String
+        var MultipleMeterReadingReasonsFlag: Bool
     }
 
-    final class OutputData: Codable {
-        final class Results: Codable {
+    final class OutputData: Decodable {
+        final class Results: Decodable {
             var result: [OutputMetterReadingData]
         }
         class D: OutputMetterReadingData {
@@ -86,13 +96,9 @@ extension SamaraEnergoSendDataService {
             }
 
             required init(from decoder: Decoder) throws {
-                let values = try decoder.container(keyedBy: CodingKeys.self)
-                DependentMeterReadingResults = try values.decode(Results.self, forKey: .DependentMeterReadingResults)
+                let container = try decoder.container(keyedBy: CodingKeys.self)
+                DependentMeterReadingResults = try container.decode(Results.self, forKey: .DependentMeterReadingResults)
                 try super.init(from: decoder)
-            }
-
-            override func encode(to encoder: Encoder) throws {
-                try super.encode(to: encoder)
             }
         }
         var d: D
