@@ -116,10 +116,8 @@ public extension SendDataService {
                     return
                 }
                 let status = httpResponse.statusCode
-                if self.isError(statusCode: status) {
-                    let localizedMessage = HTTPURLResponse.localizedString(forStatusCode: status)
-                    let message = "\(self.title): \(localizedMessage) (\(status))"
-                    seal.reject(NSError(domain: self.title, code: status, userInfo: [NSLocalizedDescriptionKey: message]))
+                if let errorMessage = hasError(statusCode: status, data: response.data) {
+                    seal.reject(NSError(domain: self.title, code: status, userInfo: [NSLocalizedDescriptionKey: errorMessage]))
                     return
                 }
                 
@@ -138,8 +136,13 @@ public extension SendDataService {
         }
     }
     
-    private func isError(statusCode: Int) -> Bool {
-        statusCode >= 300 || statusCode < 200
+    func hasError(statusCode: Int, data: Data?) -> String? {
+        guard statusCode >= 300 || statusCode < 200 else {
+            return nil
+        }
+        let localizedMessage = HTTPURLResponse.localizedString(forStatusCode: statusCode)
+        let message = "\(self.title): \(localizedMessage) (\(statusCode))"
+        return message
     }
 
     var isNeedFirstLoad: Bool {
