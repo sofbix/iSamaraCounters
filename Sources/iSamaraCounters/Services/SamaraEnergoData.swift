@@ -33,7 +33,7 @@ extension SamaraEnergoSendDataService {
         }
     }
 
-    class InputMetterReadingData: Encodable {
+    class InputDataItem: Encodable {
         var DeviceID: String
         var MeterReadingNoteID: String
         var ReadingResult: String
@@ -60,8 +60,8 @@ extension SamaraEnergoSendDataService {
         }
     }
 
-    final class InputData: InputMetterReadingData {
-        var DependentMeterReadingResults: [InputMetterReadingData] = []
+    final class InputData: InputDataItem {
+        var DependentMeterReadingResults: [InputDataItem] = []
 
         private enum CodingKeys: String, CodingKey {
             case DependentMeterReadingResults
@@ -74,7 +74,7 @@ extension SamaraEnergoSendDataService {
         }
     }
 
-    class OutputMetterReadingData: Decodable {
+    class OutputDataItem: Decodable {
         var MeterReadingResultID: String
         var Consumption: String
         var MeterReadingReasonID: String
@@ -85,9 +85,9 @@ extension SamaraEnergoSendDataService {
 
     final class OutputData: Decodable {
         final class Results: Decodable {
-            var result: [OutputMetterReadingData]
+            var result: [OutputDataItem]
         }
-        class D: OutputMetterReadingData {
+        final class D: OutputDataItem {
 
             var DependentMeterReadingResults: Results?
 
