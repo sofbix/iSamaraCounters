@@ -125,6 +125,7 @@ public struct SamaraEnergoSendDataService : SendDataService {
             }
 
             guard let counterItems = registersData?.d.results,
+                  //let registersData = registersData,
                   let firstCounter = counterItems.first
             else {
                 return .init(error: NSError(domain: self.title, code: 404, userInfo: [NSLocalizedDescriptionKey: "\(self.title): Нет зарегистрированных счётчиков"]))
@@ -135,12 +136,12 @@ public struct SamaraEnergoSendDataService : SendDataService {
             let dayValue = input.dayElectricCountRow.value ?? ""
             let nightValue = input.nightElectricCountRow.value ?? ""
 
-            let body = InputData(DeviceID: firstCounter.DeviceID, ReadingResult: dayValue, RegisterID: firstCounter.RegisterID, ReadingDateTime: date, ContractAccountID: account, Email: email)
+            let body = InputData(deviceID: firstCounter.deviceID, readingResult: dayValue, registerID: firstCounter.registerID, readingDateTime: date, contractAccountID: account, email: email)
 
             if counterItems.count > 1 {
                 let nextCounter = counterItems[1]
-                let nextData = InputDataItem(DeviceID: nextCounter.DeviceID, ReadingResult: nightValue, RegisterID: nextCounter.RegisterID, ReadingDateTime: date, ContractAccountID: account, Email: email)
-                body.DependentMeterReadingResults = [nextData]
+                let nextData = InputDataItem(deviceID: nextCounter.deviceID, readingResult: nightValue, registerID: nextCounter.registerID, readingDateTime: date, contractAccountID: account, email: email)
+                body.dependentMeterReadingResults = [nextData]
             }
             
             guard let bodyData = try? encode(value: body) else {
