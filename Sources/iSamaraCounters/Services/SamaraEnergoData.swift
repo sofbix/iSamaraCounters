@@ -75,10 +75,25 @@ extension SamaraEnergoSendDataService {
 
     final class OutputData: Codable {
         final class Results: Codable {
-            var result: [OutputMetterReadingData] = []
+            var result: [OutputMetterReadingData]
         }
-        final class D: OutputMetterReadingData {
-            var DependentMeterReadingResults: Results = Results()
+        class D: OutputMetterReadingData {
+
+            var DependentMeterReadingResults: Results
+
+            private enum CodingKeys: String, CodingKey {
+                case DependentMeterReadingResults
+            }
+
+            required init(from decoder: Decoder) throws {
+                let values = try decoder.container(keyedBy: CodingKeys.self)
+                DependentMeterReadingResults = try values.decode(Results.self, forKey: .DependentMeterReadingResults)
+                try super.init(from: decoder)
+            }
+
+            override func encode(to encoder: Encoder) throws {
+                try super.encode(to: encoder)
+            }
         }
         var d: D
     }
