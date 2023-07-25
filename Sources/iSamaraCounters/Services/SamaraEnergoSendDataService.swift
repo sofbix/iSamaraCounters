@@ -88,7 +88,11 @@ public struct SamaraEnergoSendDataService : SendDataService {
             return nil
         }
         if let data = data, let output: ErrorData = try? parse(data: data) {
-            return "\(self.title): \(output.error.message.value)"
+            var message = "\(self.title): \(output.error.message.value)"
+            if output.error.code == "ZISU_UMC_ODATA/034" || output.error.code == "ZISU_UMC_ODATA/033" {
+                message += ". Проверте правильность ввода лицевого счета по электроэнергии."
+            }
+            return message
         }
         let localizedMessage = HTTPURLResponse.localizedString(forStatusCode: statusCode)
         let message = "\(self.title): \(localizedMessage) (\(statusCode))"
