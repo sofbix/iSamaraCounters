@@ -75,6 +75,14 @@ extension SamaraEnergoSendDataService {
     }
 
     class OutputDataItem: Decodable {
+        var DeviceID: String
+        var MeterReadingNoteID: String
+        var ReadingResult: String
+        var RegisterID: String
+        var ReadingDateTime: String
+        var ContractAccountID: String
+        var Email: String
+        
         var MeterReadingResultID: String
         var Consumption: String
         var MeterReadingReasonID: String
