@@ -154,11 +154,13 @@ public struct SamaraEnergoSendDataService : SendDataService {
             print(stringData)
         }
 
-        guard let output: OutputData = try? parse(data: data) else {
-            return "Что то пошло не так с СамараЭнерго"
-        }
+        do {
+            let output: OutputData = try parse(data: data)
 
-        print("SamaraEnergo Output: \(output)")
+            print("SamaraEnergo Output: \(output)")
+        } catch let error {
+            return "\(self.title): \(error.localizedDescription)"
+        }
         
         return nil
     }
