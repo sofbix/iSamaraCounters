@@ -146,6 +146,12 @@ public struct SamaraEnergoSendDataService : SendDataService {
     
     public func checkOutputData(with data: Data) -> String? {
 
+        if let stringData = String(data: data, encoding: .utf8)
+
+        {
+            print(stringData)
+        }
+
         guard let output: OutputData = try? parse(data: data) else {
             return "Что то пошло не так с СамараЭнерго"
         }
