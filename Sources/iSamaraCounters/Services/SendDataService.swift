@@ -51,6 +51,7 @@ public protocol SendDataService: Any {
 
     var isNeedFirstLoad: Bool {get}
     func firstLoad(with input: SendDataServiceInput) -> Promise<Data>?
+    func hasError(statusCode: Int, data: Data?) -> String?
 }
 
 

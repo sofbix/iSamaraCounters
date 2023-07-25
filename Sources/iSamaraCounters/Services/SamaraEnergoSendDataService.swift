@@ -83,7 +83,7 @@ public struct SamaraEnergoSendDataService : SendDataService {
         return try JSONEncoder().encode(value)
     }
 
-    func hasError(statusCode: Int, data: Data?) -> String? {
+    public func hasError(statusCode: Int, data: Data?) -> String? {
         guard statusCode >= 300 || statusCode < 200 else {
             return nil
         }
@@ -121,11 +121,11 @@ public struct SamaraEnergoSendDataService : SendDataService {
             let dayValue = input.dayElectricCountRow.value ?? ""
             let nightValue = input.nightElectricCountRow.value ?? ""
 
-            let body = OutputData(DeviceID: firstCounter.DeviceID, ReadingResult: dayValue, RegisterID: firstCounter.RegisterID, ReadingDateTime: date, ContractAccountID: email)
+            let body = OutputData(DeviceID: firstCounter.DeviceID, ReadingResult: dayValue, RegisterID: firstCounter.RegisterID, ReadingDateTime: date, ContractAccountID: account, Email: email)
 
             if counterItems.count > 1 {
                 let nextCounter = counterItems[1]
-                let nextData = OutputData(DeviceID: nextCounter.DeviceID, ReadingResult: nightValue, RegisterID: nextCounter.RegisterID, ReadingDateTime: date, ContractAccountID: email)
+                let nextData = OutputData(DeviceID: nextCounter.DeviceID, ReadingResult: nightValue, RegisterID: nextCounter.RegisterID, ReadingDateTime: date, ContractAccountID: account, Email: email)
                 body.DependentMeterReadingResults = [nextData]
             }
             
