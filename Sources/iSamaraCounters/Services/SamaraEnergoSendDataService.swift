@@ -124,7 +124,7 @@ public struct SamaraEnergoSendDataService : SendDataService {
             let body = OutputData(DeviceID: firstCounter.DeviceID, ReadingResult: dayValue, RegisterID: firstCounter.RegisterID, ReadingDateTime: date, ContractAccountID: email)
 
             if counterItems.count > 1 {
-                let nextCounter = counterItems[2]
+                let nextCounter = counterItems[1]
                 let nextData = OutputData(DeviceID: nextCounter.DeviceID, ReadingResult: nightValue, RegisterID: nextCounter.RegisterID, ReadingDateTime: date, ContractAccountID: email)
                 body.DependentMeterReadingResults = [nextData]
             }
