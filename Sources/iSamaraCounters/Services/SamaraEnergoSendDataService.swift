@@ -18,13 +18,20 @@ public struct SamaraEnergoSendDataService : SendDataService {
     public let title: String = "СамамараЭнерго"
     public let days = Range<Int>(uncheckedBounds: (lower: 20, upper: 25))
 
-#warning("Get from Location Accept-Language?")
     private let commonHeaders : HTTPHeaders = [
         "Host" : "lk.samaraenergo.ru",
         "X-REQUESTED-WITH": "XMLHttpRequest",
         "Accept": "application/json",
-        "Accept-Language": "ru-RU"
+        "Accept-Language": languageId
     ]
+
+    private static var languageId: String {
+        if #available(iOS 16.0, *) {
+            return NSLocale.current.identifier(.bcp47)
+        } else {
+            return NSLocale.current.identifier.replacingOccurrences(of: "_", with: "-")
+        }
+    }
 
     private let iso8601: DateFormatter = {
         let formatter = DateFormatter()
