@@ -132,6 +132,10 @@ public struct SamaraEnergoSendDataService : SendDataService {
             guard let bodyData = try? encode(value: body) else {
                 return .init(error: NSError(domain: self.title, code: 404, userInfo: [NSLocalizedDescriptionKey: "\(self.title): Неверный запрос на сервер"]))
             }
+
+            if let stringData = String(data: bodyData, encoding: .utf8) {
+                print(stringData)
+            }
             
             var headers : HTTPHeaders = commonHeaders
             headers["Content-Type"] = "application/json"
@@ -146,9 +150,7 @@ public struct SamaraEnergoSendDataService : SendDataService {
     
     public func checkOutputData(with data: Data) -> String? {
 
-        if let stringData = String(data: data, encoding: .utf8)
-
-        {
+        if let stringData = String(data: data, encoding: .utf8) {
             print(stringData)
         }
 
