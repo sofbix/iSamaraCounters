@@ -89,7 +89,7 @@ extension SamaraEnergoSendDataService {
         }
         class D: OutputMetterReadingData {
 
-            var DependentMeterReadingResults: Results
+            var DependentMeterReadingResults: Results?
 
             private enum CodingKeys: String, CodingKey {
                 case DependentMeterReadingResults
