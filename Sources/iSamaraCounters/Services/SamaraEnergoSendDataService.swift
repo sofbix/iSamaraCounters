@@ -121,11 +121,11 @@ public struct SamaraEnergoSendDataService : SendDataService {
             let dayValue = input.dayElectricCountRow.value ?? ""
             let nightValue = input.nightElectricCountRow.value ?? ""
 
-            let body = OutputData(DeviceID: firstCounter.DeviceID, ReadingResult: dayValue, RegisterID: firstCounter.RegisterID, ReadingDateTime: date, ContractAccountID: account, Email: email)
+            let body = InputData(DeviceID: firstCounter.DeviceID, ReadingResult: dayValue, RegisterID: firstCounter.RegisterID, ReadingDateTime: date, ContractAccountID: account, Email: email)
 
             if counterItems.count > 1 {
                 let nextCounter = counterItems[1]
-                let nextData = OutputData(DeviceID: nextCounter.DeviceID, ReadingResult: nightValue, RegisterID: nextCounter.RegisterID, ReadingDateTime: date, ContractAccountID: account, Email: email)
+                let nextData = InputData(DeviceID: nextCounter.DeviceID, ReadingResult: nightValue, RegisterID: nextCounter.RegisterID, ReadingDateTime: date, ContractAccountID: account, Email: email)
                 body.DependentMeterReadingResults = [nextData]
             }
             
@@ -146,10 +146,11 @@ public struct SamaraEnergoSendDataService : SendDataService {
     
     public func checkOutputData(with data: Data) -> String? {
 
-        #warning("May try to parse???")
-        if false {
+        guard let output: OutputData = try? parse(data: data) else {
             return "Что то пошло не так с СамараЭнерго"
         }
+
+        print("SamaraEnergo Output: \(output)")
         
         return nil
     }

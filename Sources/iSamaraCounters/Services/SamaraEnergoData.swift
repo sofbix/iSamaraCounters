@@ -33,7 +33,7 @@ extension SamaraEnergoSendDataService {
         }
     }
 
-    class MetterReadingData: Codable {
+    class InputMetterReadingData: Codable {
         var DeviceID: String
         var MeterReadingNoteID: String
         var ReadingResult: String
@@ -60,8 +60,27 @@ extension SamaraEnergoSendDataService {
         }
     }
 
-    final class OutputData: MetterReadingData {
-        var DependentMeterReadingResults: [MetterReadingData] = []
+    final class InputData: InputMetterReadingData {
+        var DependentMeterReadingResults: [InputMetterReadingData] = []
+    }
+
+    class OutputMetterReadingData: InputMetterReadingData {
+        var MeterReadingResultID: String = ""
+        var Consumption: String = "1.00000000000000"
+        var MeterReadingReasonID: String = "09"
+        var MeterReadingCategoryID: String = "02"
+        var MeterReadingStatusID: String = ""
+        var MultipleMeterReadingReasonsFlag: Bool = false
+    }
+
+    final class OutputData: Codable {
+        final class Results: Codable {
+            var result: [OutputMetterReadingData] = []
+        }
+        final class D: OutputMetterReadingData {
+            var DependentMeterReadingResults: Results = Results()
+        }
+        var d: D
     }
 
     struct ErrorData: Codable {
