@@ -117,17 +117,20 @@ public struct SamaraEnergoSendDataService : SendDataService {
             let email = input.emailRow.value ?? ""
             let date = iso8601.string(from: Date())
 
-            #warning("Catch this and add self.title to error message")
-            let registersData: GetRegistersData = try parse(data: getData)
+            var registersData: GetRegistersData?
+            do {
+                registersData = try parse(data: getData)
+            } catch let error {
+                return .init(error: NSError(domain: self.title, code: 404, userInfo: [NSLocalizedDescriptionKey: "\(self.title): Невозможно определить тип устройства: \(error.localizedDescription)"]))
+            }
 
-            #warning("You can check registersData.SerialNumber with electricCounterNumberRow")
-
-
-            let counterItems = registersData.d.results
-            
-            guard let firstCounter = counterItems.first else {
+            guard let counterItems = registersData?.d.results,
+                  let firstCounter = counterItems.first
+            else {
                 return .init(error: NSError(domain: self.title, code: 404, userInfo: [NSLocalizedDescriptionKey: "\(self.title): Нет зарегистрированных счётчиков"]))
             }
+
+            #warning("You can check registersData.SerialNumber with electricCounterNumberRow")
             
             let dayValue = input.dayElectricCountRow.value ?? ""
             let nightValue = input.nightElectricCountRow.value ?? ""
