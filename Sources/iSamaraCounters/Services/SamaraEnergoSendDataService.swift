@@ -9,6 +9,7 @@ import Foundation
 import PromiseKit
 import Alamofire
 import BxInputController
+import UIKit
 
 public struct SamaraEnergoSendDataService : SendDataService {
 
@@ -41,6 +42,8 @@ public struct SamaraEnergoSendDataService : SendDataService {
         formatter.locale = Locale(identifier: "en_US_POSIX")
         return formatter
     }()
+
+    private let semaphore = DispatchSemaphore(value: 1)
     
     public func addCheckers(for input: SendDataServiceInput){
         let electricAccountNumberChecker = BxInputBlockChecker(row: input.electricAccountNumberRow, subtitle: "Введите непустой номер из чисел", handler: { row in
@@ -54,8 +57,7 @@ public struct SamaraEnergoSendDataService : SendDataService {
         input.addChecker(electricAccountNumberChecker, for: input.electricAccountNumberRow)
 
         // You can get this value from setup request and check with SerialNumber from request.
-        #warning("You can get this value from setup request and check with SerialNumber from request.")
-        //input.addChecker(BxInputEmptyValueChecker(row: input.electricCounterNumberRow, placeholder: "Значение должно быть не пустым"), for: input.electricCounterNumberRow)
+        input.addChecker(BxInputEmptyValueChecker(row: input.electricCounterNumberRow, placeholder: "Значение должно быть не пустым"), for: input.electricCounterNumberRow)
         
         let dayElectricCountChecker = BxInputBlockChecker(row: input.dayElectricCountRow, subtitle: "Укажите целочисленное значение счетчика", handler: { row in
             let value = input.dayElectricCountRow.value ?? ""
@@ -109,6 +111,7 @@ public struct SamaraEnergoSendDataService : SendDataService {
     public func map(_ input: SendDataServiceInput) -> Promise<Data> {
         
         let account = input.electricAccountNumberRow.value ?? ""
+        let currentSN = input.electricCounterNumberRow.value ?? ""
         
         let getRequest = try! URLRequest(url: "https://lk.samaraenergo.ru/sap/opu/odata/SAP/ZERP_UTILITIES_UMC_PUBLIC_SRV_SRV/GetRegistersToRead?ContractAccountID='\(account)'&SerialNumber=''", method: .get, headers: commonHeaders)
         
@@ -124,42 +127,94 @@ public struct SamaraEnergoSendDataService : SendDataService {
                 return .init(error: NSError(domain: self.title, code: 404, userInfo: [NSLocalizedDescriptionKey: "\(self.title): Невозможно определить тип устройства: \(error.localizedDescription)"]))
             }
 
-            guard let counterItems = registersData?.d.results,
-                  //let registersData = registersData,
-                  let firstCounter = counterItems.first
+            guard let counterItems = registersData?.d.results
             else {
-                return .init(error: NSError(domain: self.title, code: 404, userInfo: [NSLocalizedDescriptionKey: "\(self.title): Нет зарегистрированных счётчиков"]))
+                return .init(error: NSError(domain: self.title, code: 404, userInfo: [NSLocalizedDescriptionKey: "\(self.title): Нет данных о счётчиках"]))
             }
 
-            #warning("You can check registersData.SerialNumber with electricCounterNumberRow")
             
-            let dayValue = input.dayElectricCountRow.value ?? ""
-            let nightValue = input.nightElectricCountRow.value ?? ""
+            var firstSerialNumber: String? = nil
+            for item in counterItems {
+                if let firstSerialNumber = firstSerialNumber {
+                    if firstSerialNumber != currentSN && firstSerialNumber != "№\(currentSN)" {
+                        return tryToAnswerUser(input, counterItems: counterItems, message: "Есть рассхождение введенного вами сирийного номера для счётчика (\(currentSN)) и зарегистрированного в СамараЭнерго (\(firstSerialNumber))")
+                    }
+                    if item.serialNumber != firstSerialNumber {
+                        return tryToAnswerUser(input, counterItems: counterItems, message: "В СамараЭнерго имеется регистрация нескольких серийных номеров одного счётчика: \(firstSerialNumber), \(item.serialNumber)")
+                    }
 
-            let body = InputData(deviceID: firstCounter.deviceID, readingResult: dayValue, registerID: firstCounter.registerID, readingDateTime: date, contractAccountID: account, email: email)
+                } else {
+                    firstSerialNumber = item.serialNumber
+                }
 
-            if counterItems.count > 1 {
-                let nextCounter = counterItems[1]
-                let nextData = InputDataItem(deviceID: nextCounter.deviceID, readingResult: nightValue, registerID: nextCounter.registerID, readingDateTime: date, contractAccountID: account, email: email)
-                body.dependentMeterReadingResults = [nextData]
             }
             
-            guard let bodyData = try? encode(value: body) else {
-                return .init(error: NSError(domain: self.title, code: 404, userInfo: [NSLocalizedDescriptionKey: "\(self.title): Неверный запрос на сервер"]))
+            return finishSending(input, counterItems: counterItems)
+        }
+    }
+
+    private func finishSending(_ input: SendDataServiceInput, counterItems: [GetRegistersData.Item]) -> Promise<Data> {
+        let account = input.electricAccountNumberRow.value ?? ""
+        let email = input.emailRow.value ?? ""
+        let date = iso8601.string(from: Date())
+
+        let dayValue = input.dayElectricCountRow.value ?? ""
+        let nightValue = input.nightElectricCountRow.value ?? ""
+
+        guard let firstCounter = counterItems.first
+        else {
+            return .init(error: NSError(domain: self.title, code: 404, userInfo: [NSLocalizedDescriptionKey: "\(self.title): Нет зарегистрированных счётчиков"]))
+        }
+
+        let body = InputData(deviceID: firstCounter.deviceID, readingResult: dayValue, registerID: firstCounter.registerID, readingDateTime: date, contractAccountID: account, email: email)
+
+        if counterItems.count > 1 {
+            let nextCounter = counterItems[1]
+            let nextData = InputDataItem(deviceID: nextCounter.deviceID, readingResult: nightValue, registerID: nextCounter.registerID, readingDateTime: date, contractAccountID: account, email: email)
+            body.dependentMeterReadingResults = [nextData]
+        }
+
+        guard let bodyData = try? encode(value: body) else {
+            return .init(error: NSError(domain: self.title, code: 404, userInfo: [NSLocalizedDescriptionKey: "\(self.title): Неверный запрос на сервер"]))
+        }
+
+        if let stringData = String(data: bodyData, encoding: .utf8) {
+            print(stringData)
+        }
+
+        var headers : HTTPHeaders = commonHeaders
+        headers["Content-Type"] = "application/json"
+        headers["Content-Length"] = "\(bodyData.count)"
+
+        var request = try! URLRequest(url: "https://lk.samaraenergo.ru/sap/opu/odata/SAP/ZERP_UTILITIES_UMC_PUBLIC_SRV_SRV/MeterReadingResults", method: .post, headers: headers)
+        request.httpBody = bodyData
+
+        return service(request)
+    }
+
+    private func tryToAnswerUser(_ input: SendDataServiceInput, counterItems: [GetRegistersData.Item], message: String) -> Promise<Data> {
+        return Promise<Void> { seal in
+            guard let controller = input as? UIViewController else {
+                seal.reject(NSError(domain: self.title, code: 404, userInfo: [NSLocalizedDescriptionKey: "\(self.title): Что то пошло не так с интерфейсом"]))
+                return
             }
 
-            if let stringData = String(data: bodyData, encoding: .utf8) {
-                print(stringData)
+            let okAction = UIAlertAction(title: "Продолжить", style: .default) { _ in
+                semaphore.signal()
             }
-            
-            var headers : HTTPHeaders = commonHeaders
-            headers["Content-Type"] = "application/json"
-            headers["Content-Length"] = "\(bodyData.count)"
 
-            var request = try! URLRequest(url: "https://lk.samaraenergo.ru/sap/opu/odata/SAP/ZERP_UTILITIES_UMC_PUBLIC_SRV_SRV/MeterReadingResults", method: .post, headers: headers)
-            request.httpBody = bodyData
-            
-            return service(request)
+            let cancelAction = UIAlertAction(title: "Отменить", style: .cancel) { _ in
+                semaphore.signal()
+            }
+
+            let alertController = UIAlertController(title: "Предупреждение", message: "\(title): \(message)", preferredStyle: .alert)
+            alertController.addAction(cancelAction)
+            alertController.addAction(okAction)
+            controller.present(alertController, animated: true, completion: nil)
+            seal.fulfill(Void())
+        }.then(on: DispatchQueue.global(qos: .background)){
+            semaphore.wait()
+            return finishSending(input, counterItems: counterItems)
         }
     }
     
