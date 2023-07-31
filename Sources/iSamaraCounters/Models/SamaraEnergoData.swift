@@ -82,7 +82,7 @@ public struct SamaraEnergoData {
         }
     }
 
-    public class InputDataItem: Encodable {
+    public class InputDataItem: Codable {
         public var deviceID: String
         public var meterReadingNoteID: String
         public var readingResult: String
@@ -127,6 +127,12 @@ public struct SamaraEnergoData {
             case dependentMeterReadingResults = "DependentMeterReadingResults"
         }
 
+        public required init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            dependentMeterReadingResults = try container.decode([InputDataItem].self, forKey: .dependentMeterReadingResults)
+            try super.init(from: decoder)
+        }
+
         public override func encode(to encoder: Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
             try super.encode(to: encoder)
@@ -147,7 +153,7 @@ public struct SamaraEnergoData {
         }
     }
 
-    public class OutputDataItem: Decodable {
+    public class OutputDataItem: Codable {
         public var deviceID: String
         public var meterReadingNoteID: String
         public var readingResult: String
@@ -197,11 +203,11 @@ public struct SamaraEnergoData {
         }
     }
 
-    public final class OutputData: Decodable {
+    public final class OutputData: Codable {
 
         public final class D: OutputDataItem {
 
-            public final class Results: Decodable {
+            public final class Results: Codable {
                 var results: [OutputDataItem]
 
                 public init(results: [SamaraEnergoData.OutputDataItem]) {
@@ -219,6 +225,12 @@ public struct SamaraEnergoData {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
                 dependentMeterReadingResults = try container.decodeIfPresent(Results.self, forKey: .dependentMeterReadingResults)
                 try super.init(from: decoder)
+            }
+
+            public override func encode(to encoder: Encoder) throws {
+                var container = encoder.container(keyedBy: CodingKeys.self)
+                try super.encode(to: encoder)
+                try container.encodeIfPresent(dependentMeterReadingResults, forKey: .dependentMeterReadingResults)
             }
 
             public init(deviceID: String, meterReadingNoteID: String, readingResult: String, registerID: String, readingDateTime: String, contractAccountID: String, email: String, meterReadingResultID: String, consumption: String, meterReadingReasonID: String, meterReadingCategoryID: String, meterReadingStatusID: String, multipleMeterReadingReasonsFlag: Bool, dependentMeterReadingResults: Results? = nil) {
