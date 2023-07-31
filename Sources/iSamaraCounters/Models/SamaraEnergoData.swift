@@ -198,10 +198,12 @@ public struct SamaraEnergoData {
     }
 
     public final class OutputData: Decodable {
-        public final class Results: Decodable {
-            var results: [OutputDataItem]
-        }
+
         public final class D: OutputDataItem {
+
+            public final class Results: Decodable {
+                var results: [OutputDataItem]
+            }
 
             public var dependentMeterReadingResults: Results?
 
@@ -215,7 +217,7 @@ public struct SamaraEnergoData {
                 try super.init(from: decoder)
             }
 
-            public init(deviceID: String, meterReadingNoteID: String, readingResult: String, registerID: String, readingDateTime: String, contractAccountID: String, email: String, meterReadingResultID: String, consumption: String, meterReadingReasonID: String, meterReadingCategoryID: String, meterReadingStatusID: String, multipleMeterReadingReasonsFlag: Bool, dependentMeterReadingResults: OutputData.Results? = nil) {
+            public init(deviceID: String, meterReadingNoteID: String, readingResult: String, registerID: String, readingDateTime: String, contractAccountID: String, email: String, meterReadingResultID: String, consumption: String, meterReadingReasonID: String, meterReadingCategoryID: String, meterReadingStatusID: String, multipleMeterReadingReasonsFlag: Bool, dependentMeterReadingResults: Results? = nil) {
                 self.dependentMeterReadingResults = dependentMeterReadingResults
                 super.init(
                     deviceID: deviceID,
@@ -235,6 +237,10 @@ public struct SamaraEnergoData {
             }
         }
         public var d: D
+
+        public init(d: D) {
+            self.d = d
+        }
     }
 
     public struct ErrorData: Codable {
