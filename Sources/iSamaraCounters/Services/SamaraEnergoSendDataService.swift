@@ -111,7 +111,7 @@ public struct SamaraEnergoSendDataService : SendDataService {
         guard statusCode >= 300 || statusCode < 200 else {
             return nil
         }
-        if let data = data, let output: ErrorData = try? parse(data: data) {
+        if let data = data, let output: SamaraEnergoData.ErrorData = try? parse(data: data) {
             var message = "\(self.title): \(output.error.message.value)"
             if output.error.code == "ZISU_UMC_ODATA/034" || output.error.code == "ZISU_UMC_ODATA/033" {
                 message += ". Проверте правильность ввода лицевого счета по электроэнергии."
@@ -132,7 +132,7 @@ public struct SamaraEnergoSendDataService : SendDataService {
         
         return service(getRequest, isNeedCheckOutput: false).then{ getData -> Promise<Data> in
 
-            var registersData: GetRegistersData?
+            var registersData: SamaraEnergoData.GetRegistersData?
             do {
                 registersData = try parse(data: getData)
             } catch let error {
@@ -165,7 +165,7 @@ public struct SamaraEnergoSendDataService : SendDataService {
         }
     }
 
-    private func finishSending(_ input: SendDataServiceInput, counterItems: [GetRegistersData.Item]) -> Promise<Data> {
+    private func finishSending(_ input: SendDataServiceInput, counterItems: [SamaraEnergoData.GetRegistersData.Item]) -> Promise<Data> {
         let account = input.electricAccountNumberRow.value ?? ""
         let email = input.emailRow.value ?? ""
         let date = iso8601.string(from: Date())
@@ -178,11 +178,11 @@ public struct SamaraEnergoSendDataService : SendDataService {
             return .init(error: NSError(domain: self.title, code: 404, userInfo: [NSLocalizedDescriptionKey: "\(self.title): Нет зарегистрированных счётчиков"]))
         }
 
-        let body = InputData(deviceID: firstCounter.deviceID, readingResult: dayValue, registerID: firstCounter.registerID, readingDateTime: date, contractAccountID: account, email: email)
+        let body = SamaraEnergoData.InputData(deviceID: firstCounter.deviceID, readingResult: dayValue, registerID: firstCounter.registerID, readingDateTime: date, contractAccountID: account, email: email)
 
         if counterItems.count > 1 {
             let nextCounter = counterItems[1]
-            let nextData = InputDataItem(deviceID: nextCounter.deviceID, readingResult: nightValue, registerID: nextCounter.registerID, readingDateTime: date, contractAccountID: account, email: email)
+            let nextData = SamaraEnergoData.InputDataItem(deviceID: nextCounter.deviceID, readingResult: nightValue, registerID: nextCounter.registerID, readingDateTime: date, contractAccountID: account, email: email)
             body.dependentMeterReadingResults = [nextData]
         }
 
@@ -204,7 +204,7 @@ public struct SamaraEnergoSendDataService : SendDataService {
         return service(request)
     }
 
-    private func tryToAnswerUser(_ input: SendDataServiceInput, counterItems: [GetRegistersData.Item], message: String) -> Promise<Data> {
+    private func tryToAnswerUser(_ input: SendDataServiceInput, counterItems: [SamaraEnergoData.GetRegistersData.Item], message: String) -> Promise<Data> {
         return Promise<AnswerWaiting> { seal in
             guard let controller = input as? UIViewController else {
                 seal.reject(NSError(domain: self.title, code: 404, userInfo: [NSLocalizedDescriptionKey: "\(self.title): Что то пошло не так с интерфейсом"]))
@@ -242,7 +242,7 @@ public struct SamaraEnergoSendDataService : SendDataService {
         }
 
         do {
-            let output: OutputData = try parse(data: data)
+            let output: SamaraEnergoData.OutputData = try parse(data: data)
 
             print("SamaraEnergo Output: \(output)")
         } catch let error {
