@@ -8,6 +8,11 @@
 import Foundation
 
 public struct SamaraEnergoData {
+
+    public let domain: String
+    public let getRegistersMethod: String
+    public let postMeterReadingMethod: String
+
     public init(domain: String = "https://lk.samaraenergo.ru",
                   getRegistersMethod: String = "/sap/opu/odata/SAP/ZERP_UTILITIES_UMC_PUBLIC_SRV_SRV/GetRegistersToRead",
                   postMeterReadingMethod: String = "/sap/opu/odata/SAP/ZERP_UTILITIES_UMC_PUBLIC_SRV_SRV/MeterReadingResults")
@@ -16,10 +21,6 @@ public struct SamaraEnergoData {
         self.getRegistersMethod = getRegistersMethod
         self.postMeterReadingMethod = postMeterReadingMethod
     }
-
-    public let domain: String
-    public let getRegistersMethod: String
-    public let postMeterReadingMethod: String
 
     public struct GetRegistersData: Codable {
 
@@ -109,6 +110,7 @@ public struct SamaraEnergoData {
             try super.encode(to: encoder)
             try container.encode(dependentMeterReadingResults, forKey: .dependentMeterReadingResults)
         }
+
     }
 
     public class OutputDataItem: Decodable {
@@ -143,6 +145,22 @@ public struct SamaraEnergoData {
             case meterReadingStatusID = "MeterReadingStatusID"
             case multipleMeterReadingReasonsFlag = "MultipleMeterReadingReasonsFlag"
         }
+
+        public init(deviceID: String, meterReadingNoteID: String, readingResult: String, registerID: String, readingDateTime: String, contractAccountID: String, email: String, meterReadingResultID: String, consumption: String, meterReadingReasonID: String, meterReadingCategoryID: String, meterReadingStatusID: String, multipleMeterReadingReasonsFlag: Bool) {
+            self.deviceID = deviceID
+            self.meterReadingNoteID = meterReadingNoteID
+            self.readingResult = readingResult
+            self.registerID = registerID
+            self.readingDateTime = readingDateTime
+            self.contractAccountID = contractAccountID
+            self.email = email
+            self.meterReadingResultID = meterReadingResultID
+            self.consumption = consumption
+            self.meterReadingReasonID = meterReadingReasonID
+            self.meterReadingCategoryID = meterReadingCategoryID
+            self.meterReadingStatusID = meterReadingStatusID
+            self.multipleMeterReadingReasonsFlag = multipleMeterReadingReasonsFlag
+        }
     }
 
     public final class OutputData: Decodable {
@@ -161,6 +179,25 @@ public struct SamaraEnergoData {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
                 dependentMeterReadingResults = try container.decodeIfPresent(Results.self, forKey: .dependentMeterReadingResults)
                 try super.init(from: decoder)
+            }
+
+            public init(deviceID: String, meterReadingNoteID: String, readingResult: String, registerID: String, readingDateTime: String, contractAccountID: String, email: String, meterReadingResultID: String, consumption: String, meterReadingReasonID: String, meterReadingCategoryID: String, meterReadingStatusID: String, multipleMeterReadingReasonsFlag: Bool, dependentMeterReadingResults: OutputData.Results? = nil) {
+                self.dependentMeterReadingResults = dependentMeterReadingResults
+                super.init(
+                    deviceID: deviceID,
+                    meterReadingNoteID: meterReadingNoteID,
+                    readingResult: readingResult,
+                    registerID: registerID,
+                    readingDateTime: readingDateTime,
+                    contractAccountID: contractAccountID,
+                    email: email,
+                    meterReadingResultID: meterReadingResultID,
+                    consumption: consumption,
+                    meterReadingReasonID: meterReadingReasonID,
+                    meterReadingCategoryID: meterReadingCategoryID,
+                    meterReadingStatusID: meterReadingStatusID,
+                    multipleMeterReadingReasonsFlag: multipleMeterReadingReasonsFlag
+                )
             }
         }
         public var d: D
