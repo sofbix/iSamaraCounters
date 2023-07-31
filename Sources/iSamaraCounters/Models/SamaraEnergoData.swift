@@ -203,6 +203,10 @@ public struct SamaraEnergoData {
 
             public final class Results: Decodable {
                 var results: [OutputDataItem]
+
+                public init(results: [SamaraEnergoData.OutputDataItem]) {
+                    self.results = results
+                }
             }
 
             public var dependentMeterReadingResults: Results?
