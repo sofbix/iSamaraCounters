@@ -149,7 +149,7 @@ public struct SamaraEnergoData {
                       email: String = "")
         {
             self.dependentMeterReadingResults = dependentMeterReadingResults
-            super.init(deviceID: deviceID, readingResult: readingResult, registerID: registerID, readingDateTime: readingDateTime, contractAccountID: contractAccountID)
+            super.init(deviceID: deviceID, readingResult: readingResult, registerID: registerID, readingDateTime: readingDateTime, contractAccountID: contractAccountID, email: email)
         }
     }
 
