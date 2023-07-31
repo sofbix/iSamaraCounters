@@ -10,14 +10,19 @@ import PromiseKit
 import Alamofire
 import BxInputController
 import UIKit
+import iSamaraCountersModels
 
 public struct SamaraEnergoSendDataService : SendDataService {
 
-    public init() {}
+    public init(data: SamaraEnergoData = SamaraEnergoData()) {
+        self.data = data
+    }
 
     public let name: String = "SamaraEnergo"
     public let title: String = "СамамараЭнерго"
     public let days = Range<Int>(uncheckedBounds: (lower: 20, upper: 25))
+
+    public let data: SamaraEnergoData
 
     private let commonHeaders : HTTPHeaders = [
         "Host" : "lk.samaraenergo.ru",
@@ -128,7 +133,7 @@ public struct SamaraEnergoSendDataService : SendDataService {
         let account = input.electricAccountNumberRow.value ?? ""
         let currentSN = input.electricCounterNumberRow.value ?? ""
         
-        let getRequest = try! URLRequest(url: "https://lk.samaraenergo.ru/sap/opu/odata/SAP/ZERP_UTILITIES_UMC_PUBLIC_SRV_SRV/GetRegistersToRead?ContractAccountID='\(account)'&SerialNumber=''", method: .get, headers: commonHeaders)
+        let getRequest = try! URLRequest(url: data.domain + data.getRegistersMethod + "?ContractAccountID='\(account)'&SerialNumber=''", method: .get, headers: commonHeaders)
         
         return service(getRequest, isNeedCheckOutput: false).then{ getData -> Promise<Data> in
 
@@ -198,7 +203,7 @@ public struct SamaraEnergoSendDataService : SendDataService {
         headers["Content-Type"] = "application/json"
         headers["Content-Length"] = "\(bodyData.count)"
 
-        var request = try! URLRequest(url: "https://lk.samaraenergo.ru/sap/opu/odata/SAP/ZERP_UTILITIES_UMC_PUBLIC_SRV_SRV/MeterReadingResults", method: .post, headers: headers)
+        var request = try! URLRequest(url: data.domain + data.postMeterReadingMethod, method: .post, headers: headers)
         request.httpBody = bodyData
 
         return service(request)

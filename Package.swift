@@ -9,7 +9,7 @@ let package = Package(
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
             name: "iSamaraCounters",
-            targets: ["iSamaraCountersModels", "iSamaraCounters"]),
+            targets: ["iSamaraCounters", "iSamaraCountersModels"]),
         .library(
             name: "iSamaraCountersModels",
             targets: ["iSamaraCountersModels"]),
@@ -31,7 +31,7 @@ let package = Package(
             path: "Sources/iSamaraCounters/Models"),
         .target(
             name: "iSamaraCounters",
-            dependencies: ["PromiseKit", "Alamofire", "BxInputController", "Fuzi"],
+            dependencies: ["PromiseKit", "Alamofire", "BxInputController", "Fuzi", "iSamaraCountersModels"],
             path: "Sources/iSamaraCounters",
             exclude: ["Models"]
         ),

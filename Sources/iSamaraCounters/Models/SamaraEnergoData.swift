@@ -8,26 +8,36 @@
 import Foundation
 
 public struct SamaraEnergoData {
+    public init(domain: String = "https://lk.samaraenergo.ru",
+                  getRegistersMethod: String = "/sap/opu/odata/SAP/ZERP_UTILITIES_UMC_PUBLIC_SRV_SRV/GetRegistersToRead",
+                  postMeterReadingMethod: String = "/sap/opu/odata/SAP/ZERP_UTILITIES_UMC_PUBLIC_SRV_SRV/MeterReadingResults")
+    {
+        self.domain = domain
+        self.getRegistersMethod = getRegistersMethod
+        self.postMeterReadingMethod = postMeterReadingMethod
+    }
 
-    var domain = ""
+    public let domain: String
+    public let getRegistersMethod: String
+    public let postMeterReadingMethod: String
 
     public struct GetRegistersData: Codable {
 
-        let d: D
+        public let d: D
 
-        struct Item: Codable {
-            let deviceID: String
-            let registerID: String
-            let registerTypeID: String
-            let readingUnit: String
-            let integerPlaces: String
-            let decimalPlaces: String
-            let noMeterReadingOrderFlag:Bool
-            let previousMeterReadingResult: String
-            let previousMeterReadingDate: String
-            let previousMeterReadingReasonID: String
-            let previousMeterReadingCategoryID: String
-            let serialNumber: String
+        public struct Item: Codable {
+            public let deviceID: String
+            public let registerID: String
+            public let registerTypeID: String
+            public let readingUnit: String
+            public let integerPlaces: String
+            public let decimalPlaces: String
+            public let noMeterReadingOrderFlag:Bool
+            public let previousMeterReadingResult: String
+            public let previousMeterReadingDate: String
+            public let previousMeterReadingReasonID: String
+            public let previousMeterReadingCategoryID: String
+            public let serialNumber: String
 
             private enum CodingKeys: String, CodingKey {
                 case deviceID = "DeviceID"
@@ -45,19 +55,19 @@ public struct SamaraEnergoData {
             }
         }
 
-        struct D: Codable {
-            let results: [Item]
+        public struct D: Codable {
+            public let results: [Item]
         }
     }
 
     public class InputDataItem: Encodable {
-        var deviceID: String
-        var meterReadingNoteID: String
-        var readingResult: String
-        var registerID: String
-        var readingDateTime: String
-        var contractAccountID: String
-        var email: String
+        public var deviceID: String
+        public var meterReadingNoteID: String
+        public var readingResult: String
+        public var registerID: String
+        public var readingDateTime: String
+        public var contractAccountID: String
+        public var email: String
 
         private enum CodingKeys: String, CodingKey {
             case deviceID = "DeviceID"
@@ -69,7 +79,7 @@ public struct SamaraEnergoData {
             case email = "Email"
         }
 
-        init(deviceID: String,
+        public init(deviceID: String,
              meterReadingNoteID: String = "",
              readingResult: String,
              registerID: String,
@@ -88,7 +98,7 @@ public struct SamaraEnergoData {
     }
 
     public final class InputData: InputDataItem {
-        var dependentMeterReadingResults: [InputDataItem] = []
+        public var dependentMeterReadingResults: [InputDataItem] = []
 
         private enum CodingKeys: String, CodingKey {
             case dependentMeterReadingResults = "DependentMeterReadingResults"
@@ -102,20 +112,20 @@ public struct SamaraEnergoData {
     }
 
     public class OutputDataItem: Decodable {
-        var deviceID: String
-        var meterReadingNoteID: String
-        var readingResult: String
-        var registerID: String
-        var readingDateTime: String
-        var contractAccountID: String
-        var email: String
+        public var deviceID: String
+        public var meterReadingNoteID: String
+        public var readingResult: String
+        public var registerID: String
+        public var readingDateTime: String
+        public var contractAccountID: String
+        public var email: String
 
-        var meterReadingResultID: String
-        var consumption: String
-        var meterReadingReasonID: String
-        var meterReadingCategoryID: String
-        var meterReadingStatusID: String
-        var multipleMeterReadingReasonsFlag: Bool
+        public var meterReadingResultID: String
+        public var consumption: String
+        public var meterReadingReasonID: String
+        public var meterReadingCategoryID: String
+        public var meterReadingStatusID: String
+        public var multipleMeterReadingReasonsFlag: Bool
 
         private enum CodingKeys: String, CodingKey {
             case deviceID = "DeviceID"
@@ -136,38 +146,38 @@ public struct SamaraEnergoData {
     }
 
     public final class OutputData: Decodable {
-        final class Results: Decodable {
+        public final class Results: Decodable {
             var results: [OutputDataItem]
         }
-        final class D: OutputDataItem {
+        public final class D: OutputDataItem {
 
-            var dependentMeterReadingResults: Results?
+            public var dependentMeterReadingResults: Results?
 
             private enum CodingKeys: String, CodingKey {
                 case dependentMeterReadingResults = "DependentMeterReadingResults"
             }
 
-            required init(from decoder: Decoder) throws {
+            public required init(from decoder: Decoder) throws {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
                 dependentMeterReadingResults = try container.decodeIfPresent(Results.self, forKey: .dependentMeterReadingResults)
                 try super.init(from: decoder)
             }
         }
-        var d: D
+        public var d: D
     }
 
     public struct ErrorData: Codable {
 
-        let error: Error
+        public let error: Error
 
-        struct Error: Codable {
-            let code: String
-            let message: Message
+        public struct Error: Codable {
+            public let code: String
+            public let message: Message
         }
 
-        struct Message: Codable {
-            let lang: String
-            let value: String
+        public struct Message: Codable {
+            public let lang: String
+            public let value: String
         }
     }
 
