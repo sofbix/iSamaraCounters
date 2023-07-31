@@ -27,6 +27,7 @@ public struct SamaraEnergoData {
         public let d: D
 
         public struct Item: Codable {
+
             public let deviceID: String
             public let registerID: String
             public let registerTypeID: String
@@ -54,10 +55,30 @@ public struct SamaraEnergoData {
                 case previousMeterReadingCategoryID = "PreviousMeterReadingCategoryID"
                 case serialNumber = "SerialNumber"
             }
+
+            public init(deviceID: String, registerID: String, registerTypeID: String, readingUnit: String, integerPlaces: String, decimalPlaces: String, noMeterReadingOrderFlag: Bool, previousMeterReadingResult: String, previousMeterReadingDate: String, previousMeterReadingReasonID: String, previousMeterReadingCategoryID: String, serialNumber: String) {
+                self.deviceID = deviceID
+                self.registerID = registerID
+                self.registerTypeID = registerTypeID
+                self.readingUnit = readingUnit
+                self.integerPlaces = integerPlaces
+                self.decimalPlaces = decimalPlaces
+                self.noMeterReadingOrderFlag = noMeterReadingOrderFlag
+                self.previousMeterReadingResult = previousMeterReadingResult
+                self.previousMeterReadingDate = previousMeterReadingDate
+                self.previousMeterReadingReasonID = previousMeterReadingReasonID
+                self.previousMeterReadingCategoryID = previousMeterReadingCategoryID
+                self.serialNumber = serialNumber
+            }
+
         }
 
         public struct D: Codable {
             public let results: [Item]
+        }
+
+        public init(results: [Item]) {
+            d = D(results: results)
         }
     }
 
@@ -99,7 +120,8 @@ public struct SamaraEnergoData {
     }
 
     public final class InputData: InputDataItem {
-        public var dependentMeterReadingResults: [InputDataItem] = []
+
+        public var dependentMeterReadingResults: [InputDataItem]
 
         private enum CodingKeys: String, CodingKey {
             case dependentMeterReadingResults = "DependentMeterReadingResults"
@@ -111,6 +133,18 @@ public struct SamaraEnergoData {
             try container.encode(dependentMeterReadingResults, forKey: .dependentMeterReadingResults)
         }
 
+        public init(dependentMeterReadingResults: [SamaraEnergoData.InputDataItem] = [],
+                      deviceID: String,
+                      meterReadingNoteID: String = "",
+                      readingResult: String,
+                      registerID: String,
+                      readingDateTime: String,
+                      contractAccountID: String,
+                      email: String = "")
+        {
+            self.dependentMeterReadingResults = dependentMeterReadingResults
+            super.init(deviceID: deviceID, readingResult: readingResult, registerID: registerID, readingDateTime: readingDateTime, contractAccountID: contractAccountID)
+        }
     }
 
     public class OutputDataItem: Decodable {
@@ -215,6 +249,10 @@ public struct SamaraEnergoData {
         public struct Message: Codable {
             public let lang: String
             public let value: String
+        }
+
+        public init(code: String, lang: String, value: String) {
+            error = Error(code: code, message: Message(lang: lang, value: value))
         }
     }
 
