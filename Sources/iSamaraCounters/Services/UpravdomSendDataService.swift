@@ -158,7 +158,7 @@ extension UpravdomSendDataService {
                 if let error = response.error {
 
                     if isNeedShowError {
-                        seal.reject(NSError(domain: this.title, code: error.responseCode ?? response.response?.statusCode ?? 404, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription]))
+                        seal.reject(error)
                     } else {
                         this.tryFirstLoadUpravdom()
                             .done { data in
