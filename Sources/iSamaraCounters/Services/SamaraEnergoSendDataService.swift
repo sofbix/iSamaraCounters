@@ -19,7 +19,7 @@ public struct SamaraEnergoSendDataService : SendDataService {
     }
 
     public let name: String = "SamaraEnergo"
-    public let title: String = "СамамараЭнерго"
+    public let title: String = "СамараЭнерго"
     public let days = Range<Int>(uncheckedBounds: (lower: 20, upper: 25))
 
     public let data: SamaraEnergoData
