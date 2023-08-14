@@ -244,7 +244,7 @@ extension UpravdomSendDataService {
         case .sessionTaskFailed(let error):
             let error = error as NSError
             if Int32(error.code) == CFNetworkErrors.cfurlErrorServerCertificateUntrusted.rawValue {
-                return NSError(domain: title, code: 200, userInfo: [NSLocalizedDescriptionKey: "\(title): Временно недоступен, проблемы с сертефикатом"])
+                return NSError(domain: title, code: 200, userInfo: [NSLocalizedDescriptionKey: "\(title): Временно недоступен, проблемы upravdom63.ru"])
             } else {
                 return error
             }
