@@ -28,6 +28,8 @@ public class UpravdomSendDataService : SendDataService {
         "https://upravdom63.ru/passport"
     ]
     private var currentUrl: String? = nil
+
+    public var firstLoadError: String? = nil
     
     
     public func map(_ input: SendDataServiceInput) -> Promise<Data> {
@@ -121,7 +123,13 @@ extension UpravdomSendDataService {
         form_build_id = nil
         honeypot_time = nil
         form_id = nil
+        firstLoadError = nil
         return tryFirstLoadUpravdom()
+            .recover {[weak self] error in
+                guard let self else { throw error }
+                self.firstLoadError = error.localizedDescription
+                return Promise<Data>(error: error)
+            }
     }
 
     private func tryFirstLoadUpravdom() -> Promise<Data> {
@@ -251,6 +259,9 @@ extension UpravdomSendDataService {
         default:
             return error
         }
+    }
+    public func firstlyCheckAvailable() -> String? {
+        return firstLoadError ?? checkDay()
     }
 
 }

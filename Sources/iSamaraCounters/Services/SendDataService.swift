@@ -67,15 +67,18 @@ public extension SendDataService {
     func checkOutputData(with data: Data) -> String? {
         return nil
     }
-    
-    // default realization has error for dayes range
-    func firstlyCheckAvailable() -> String? {
+
+    func checkDay() -> String? {
         let calendar = Calendar.current
         let day = calendar.component(.day, from: Date())
         if day < days.lowerBound || day > days.upperBound {
             return "принимает с \(days.lowerBound) по \(days.upperBound) число"
         }
         return nil
+    }
+    // default realization has error for dayes range
+    func firstlyCheckAvailable() -> String? {
+        return checkDay()
     }
     
     func start(with input: SendDataServiceInput) -> Promise<Data> {
