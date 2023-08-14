@@ -52,6 +52,7 @@ public protocol SendDataService: Any {
     var isNeedFirstLoad: Bool {get}
     func firstLoad(with input: SendDataServiceInput) -> Promise<Data>?
     func hasError(statusCode: Int, data: Data?) -> String?
+    func convertError(_ error: Error) -> Error
 }
 
 
@@ -108,7 +109,7 @@ public extension SendDataService {
             request.response{ (response) in
 
                 if let error = response.error {
-                    seal.reject(error)
+                    seal.reject(convertError(error))
                     return
                 }
                 
@@ -151,6 +152,9 @@ public extension SendDataService {
     }
     func firstLoad(with input: SendDataServiceInput) -> Promise<Data>? {
         return nil
+    }
+    func convertError(_ error: Error) -> Error {
+        return error
     }
     
 }

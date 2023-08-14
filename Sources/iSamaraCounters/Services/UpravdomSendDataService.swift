@@ -158,7 +158,7 @@ extension UpravdomSendDataService {
                 if let error = response.error {
 
                     if isNeedShowError {
-                        seal.reject(error)
+                        seal.reject(this.convertError(error))
                     } else {
                         this.tryFirstLoadUpravdom()
                             .done { data in
@@ -235,6 +235,22 @@ extension UpravdomSendDataService {
     }
     public func firstLoad(with input: SendDataServiceInput) -> Promise<Data>? {
         return firstLoadUpravdom()
+    }
+    public func convertError(_ error: Error) -> Error {
+        guard let error = error.asAFError else {
+            return error
+        }
+        switch error.asAFError! {
+        case .sessionTaskFailed(let error):
+            let error = error as NSError
+            if Int32(error.code) == CFNetworkErrors.cfurlErrorServerCertificateUntrusted.rawValue {
+                return NSError(domain: title, code: 200, userInfo: [NSLocalizedDescriptionKey: "\(title): Временно недоступен, проблемы с сертефикатом"])
+            } else {
+                return error
+            }
+        default:
+            return error
+        }
     }
 
 }
