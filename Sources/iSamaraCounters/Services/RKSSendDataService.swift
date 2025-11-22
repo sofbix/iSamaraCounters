@@ -18,8 +18,8 @@ public struct RKSSendDataService : SendDataService {
     
     public let name: String = "RKS"
     public let title: String = "РКС"
-    public let days = Range<Int>(uncheckedBounds: (lower: 7, upper: 23))
-    
+    public let days = Range<Int>(uncheckedBounds: (lower: 5, upper: 25))
+
     public func addCheckers(for input: SendDataServiceInput){
         let rksAccountNumberChecker = BxInputBlockChecker(row: input.rksAccountNumberRow, subtitle: "Введите 15 значный номер с нулями в начале", handler: { row in
             let value = input.rksAccountNumberRow.value ?? ""
